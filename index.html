@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Memory Game for Sayang ❤️</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #ffecf2;
+            font-family: Arial, sans-serif;
+        }
+        .game-container {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr); /* Changed to 4 columns for better layout with 12 cards */
+            gap: 10px;
+            margin: 20px;
+            perspective: 1000px;
+        }
+        .card {
+            width: 100px;
+            height: 100px;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.5s;
+            cursor: pointer;
+        }
+        .card.flipped {
+            transform: rotateY(180deg);
+        }
+        .card-front, .card-back {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            backface-visibility: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .card-front {
+            background-color: white;
+            transform: rotateY(180deg);
+        }
+        .card-front img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 10px;
+        }
+        .card-back {
+            background-color: #ff69b4;
+            font-size: 24px;
+        }
+        .timer {
+            font-size: 24px;
+            margin: 20px;
+            color: #333;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-content {
+            background-color: white;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            animation: popup 0.5s;
+        }
+        @keyframes popup {
+            from {transform: scale(0);}
+            to {transform: scale(1);}
+        }
+    </style>
+</head>
+<body>
+    <h1>Photo Memory Game 💕</h1>
+    <div class="timer">Memorize the pics!</div>
+    <div class="game-container"></div>
+    <div class="modal">
+        <div class="modal-content">
+            <h2>Congrats sayang!! You get 3 ice cream from me!🎉</h2>
+            <p>Yeayyy!! Sayang is so gud at visual recognition! (Also gud for many other aspects but not relevant to the game lol) 😤❤️</p>
+        </div>
+    </div>
+
+    <script>
+        // Replace these URLs with your actual image URLs after uploading to ImgBB or similar
+        const images = [
+            'https://i.imgur.com/xxRlcHN.jpeg',
+            'https://i.imgur.com/WzUZ4Xh.jpeg',
+            'https://i.imgur.com/crf75MS.jpeg',
+            'https://i.imgur.com/8Vkv4vY.jpeg',
+            'https://i.imgur.com/5H0mqch.jpeg',
+            'https://i.imgur.com/XLKDJ4C.jpeg'
+        ];
+        
+        const gameContainer = document.querySelector('.game-container');
+        const timer = document.querySelector('.timer');
+        const modal = document.querySelector('.modal');
+        let cards = [];
+        let flippedCards = [];
+        let canFlip = false;
+        let matchedPairs = 0;
+
+        // Create cards
+        function createCards() {
+            const cardPairs = [...images, ...images];
+            cardPairs.sort(() => Math.random() - 0.5);
+
+            cardPairs.forEach((imgUrl, index) => {
+                const card = document.createElement('div');
+                card.classList.add('card');
+                card.innerHTML = `
+                    <div class="card-front"><img src="${imgUrl}" alt="card"></div>
+                    <div class="card-back">❤️</div>
+                `;
+                card.dataset.image = imgUrl;
+                card.addEventListener('click', flipCard);
+                gameContainer.appendChild(card);
+                cards.push(card);
+            });
+
+            // Show cards for 3 seconds
+            cards.forEach(card => card.classList.add('flipped'));
+            let countdown = 3;
+            timer.textContent = `Memorize the pics! ${countdown}`;
+
+            const countInterval = setInterval(() => {
+                countdown--;
+                timer.textContent = `Memorize the pics! ${countdown}`;
+                if (countdown === 0) {
+                    clearInterval(countInterval);
+                    cards.forEach(card => card.classList.remove('flipped'));
+                    timer.textContent = "Find the matching pairs!";
+                    canFlip = true;
+                }
+            }, 1000);
+        }
+
+        function flipCard() {
+            if (!canFlip) return;
+            if (flippedCards.length === 2) return;
+            if (flippedCards.includes(this)) return;
+            if (this.classList.contains('matched')) return;
+
+            this.classList.add('flipped');
+            flippedCards.push(this);
+
+            if (flippedCards.length === 2) {
+                checkMatch();
+            }
+        }
+
+        function checkMatch() {
+            const [card1, card2] = flippedCards;
+            if (card1.dataset.image === card2.dataset.image) {
+                card1.classList.add('matched');
+                card2.classList.add('matched');
+                matchedPairs++;
+                if (matchedPairs === images.length) {
+                    setTimeout(showCongratulations, 500);
+                }
+            } else {
+                setTimeout(() => {
+                    card1.classList.remove('flipped');
+                    card2.classList.remove('flipped');
+                }, 1000);
+            }
+            flippedCards = [];
+        }
+
+        function showCongratulations() {
+            modal.style.display = 'flex';
+        }
+
+        // Start game
+        createCards();
+    </script>
+</body>
+</html>
